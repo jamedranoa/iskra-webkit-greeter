@@ -14,7 +14,7 @@ class LockScreen extends Component {
       date: '',
       dateFormat: 'dddd, MMMM Do YYYY',
       fontSize: '5',
-      clickXlocation: this.props.vpHeight,
+      clickXlocation: NaN,
       release: false
     };
     moment.locale(this.props.locale);
@@ -46,33 +46,25 @@ class LockScreen extends Component {
     if (this.lockScreen) this.lockScreen.focus();
   }
 
-  getMousePercentage(clickY) {
-    let total = this.state.clickXlocation;
-    if (this.isMousePressed()) total = this.props.vpHeight;
-    let percentage = parseInt((100 * this.props.y) / total, 10);
-    if (percentage > 100) percentage = 100;
-
-    return percentage;
+  getMousePercentage() {
+    const total = this.props.vpHeight;
+    const percentage = Math.floor((100 * this.props.y) / total);
+    return Math.min(percentage, 100);
   }
 
   getTransformPercentage() {
-    let mousePercentage = 100 - this.getMousePercentage();
-    if (this.isMousePressed()) return 0;
-    else if (this.state.release) return 110;
+    if (this.state.release) return 110;
+    if (!this.isMousePressed()) return 0;
 
-    return mousePercentage;
+    return 100 - this.getMousePercentage();
   }
 
   isMousePressed() {
-    return Number.isNaN(this.state.clickXlocation);
+    return !Number.isNaN(this.state.clickXlocation);
   }
 
   getRelease() {
-    if (this.getTransformPercentage() > 50) {
-      return true;
-    } else {
-      return false;
-    }
+    return this.getTransformPercentage() > 50;
   }
 
   setRelease(release) {
@@ -99,8 +91,6 @@ class LockScreen extends Component {
       case 13:
       case 32:
         this.setRelease(true);
-        // Don't know why, but this is necessary to the release works.
-        this.setState({ clickXlocation: 0 });
         break;
       default:
         break;
